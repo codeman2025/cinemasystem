@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cinema System</title>
+</head>
+<body>
+
+  <h1>Cinema System</h1>
+
+  <div>
+    <button onclick="switchView('book')">Book Ticket</button>
+    <button onclick="switchView('movies')">Admin Panel (Movies)</button>
+    <button onclick="switchView('showtimes')">Admin Panel (Showtimes)</button>
+    <button onclick="switchView('bookings')">Admin Panel (Bookings)</button>
+  </div>
+
+  <!-- Booking Form -->
+  <section id="bookView" style="display:none;">
+    <h2>Book a Ticket</h2>
+    <label for="bookingShowtime">Showtime:</label>
+    <select id="bookingShowtime"></select><br><br>
+    
+    <label for="bookingEmail">Email:</label>
+    <input type="email" id="bookingEmail" placeholder="Your Email" required /><br><br>
+
+    <label for="bookingName">Name:</label>
+    <input type="text" id="bookingName" placeholder="Your Name" required /><br><br>
+
+    <label for="bookingSeat">Seat:</label>
+    <input type="text" id="bookingSeat" placeholder="Seat (e.g., A1)" required /><br><br>
+    
+    <button onclick="bookTicket()">Confirm Booking (Cash)</button>
+  </section>
+
+  <!-- Admin - Movies -->
+  <section id="moviesView" style="display:none;">
+    <h2>Manage Movies</h2>
+    <input id="movieTitle" placeholder="Movie Title" />
+    <input id="movieDesc" placeholder="Description" />
+    <input id="movieDuration" type="number" placeholder="Duration (min)" />
+    <button onclick="addMovie()">Add Movie</button>
+    <table id="moviesTable">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Desc</th>
+          <th>Duration</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- Admin - Showtimes -->
+  <section id="showtimesView" style="display:none;">
+    <h2>Manage Showtimes</h2>
+    <select id="showtimeMovie"></select>
+    <input id="showtimeDatetime" type="datetime-local" />
+    <input id="showtimeHall" placeholder="Hall Name" />
+    <button onclick="addShowtime()">Add Showtime</button>
+    <table id="showtimesTable">
+      <thead>
+        <tr>
+          <th>Movie</th>
+          <th>Time</th>
+          <th>Hall</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- Admin - Bookings -->
+  <section id="bookingsView" style="display:none;">
+    <h2>All Bookings</h2>
+    <table id="bookingsTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Seat</th>
+          <th>Showtime</th>
+          <th>Paid</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDjVubQxKgvUxQ1cFm3TmaFec84Bbe50E8",
+      authDomain: "cinema-5f965.firebaseapp.com",
+      projectId: "cinema-5f965",
+      storageBucket: "cinema-5f965.firebasestorage.app",
+      messagingSenderId: "940073159206",
+      appId: "1:940073159206:web:12e674754eec6e5b0934e7",
+      measurementId: "G-W31813LW3J"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Switch Views (Admin/Booking)
+    function switchView(view) {
+      const sections = ['bookView', 'moviesView', 'showtimesView', 'bookingsView'];
+      sections.forEach((section) => {
+        document.getElementById(section).style.display = 'none';
+      });
+      document.getElementById(view + 'View').style.display = 'block';
+
+      if (view === 'movies') loadMovies();
+      if (view === 'showtimes') loadShowtimes();
+      if (view === 'bookings') loadBookings();
+      if (view === 'book') loadShowtimesForBooking();
+    }
+
+    // Customer Booking
+    async function loadShowtimesForBooking() {
+      const snapshot = await getDocs(collection(db, "showtimes"));
+      const select = document.getElementById("bookingShowtime");
+      select.innerHTML = '';
+      snapshot.forEach(doc => {
+        const s = doc.data();
+        const movie = db.collection('movies').doc(s.movieId);
+        select.innerHTML += `<option value="${doc.id}">${movie.title} - ${new Date(s.datetime.toDate()).toLocaleString()}</option>`;
+      });
+    }
+
+    // Book a ticket
+    async function bookTicket() {
+      const showtimeId = document.getElementById("bookingShowtime").value;
+      const customerName = document.getElementById("bookingName").value;
+      const seat = document.getElementById("bookingSeat").value;
+      const email = document.getElementById("bookingEmail").value;
+
+      if (!showtimeId || !customerName || !seat || !email) {
+        alert("Please fill all fields.");
+        return;
+      }
+
+      await addDoc(collection(db, "bookings"), { showtimeId, customerName, email, seat, paid: false });
+      alert("Booking confirmed! Pay at counter.");
+    }
+
+    // Admin Functions - Movies
+    async function addMovie() {
+      const title = document.getElementById("movieTitle").value;
+      const description = document.getElementById("movieDesc").value;
+      const duration = document.getElementById("movieDuration").value;
+      
+      if (!title || !duration) return;
+
+      await addDoc(collection(db, "movies"), {
+        title, description, duration: parseInt(duration)
+      });
+      loadMovies();
+    }
+
+    // Admin Functions - Showtimes
+    async function addShowtime() {
+      const movieId = document.getElementById("showtimeMovie").value;
+      const datetime = new Date(document.getElementById("showtimeDatetime").value);
+      const hall = document.getElementById("showtimeHall").value;
+      
+      if (!movieId || !datetime || !hall) return;
+
+      await addDoc(collection(db, "showtimes"), {
+        movieId, datetime, hall
+      });
+      loadShowtimes();
+    }
+
+    // Admin Functions - Load Movies
+    async function loadMovies() {
+      const snapshot = await getDocs(collection(db, "movies"));
+      const tbody = document.querySelector("#moviesTable tbody");
+      tbody.innerHTML = '';
+      snapshot.forEach(doc => {
+        const movie = doc.data();
+        tbody.innerHTML += `<tr><td>${movie.title}</td><td>${movie.description}</td><td>${movie.duration} min</td></tr>`;
+      });
+    }
+
+    // Admin Functions - Load Showtimes
+    async function loadShowtimes() {
+      const snapshot = await getDocs(collection(db, "showtimes"));
+      const tbody = document.querySelector("#showtimesTable tbody");
+      tbody.innerHTML = '';
+      snapshot.forEach(doc => {
+        const showtime = doc.data();
+        const movieRef = db.collection('movies').doc(showtime.movieId);
+        movieRef.get().then(movieDoc => {
+          const movie = movieDoc.data();
+          tbody.innerHTML += `<tr><td>${movie.title}</td><td>${new Date(showtime.datetime.toDate()).toLocaleString()}</td><td>${showtime.hall}</td></tr>`;
+        });
+      });
+    }
+
+    // Admin Functions - Load Bookings
+    async function loadBookings() {
+      const snapshot = await getDocs(collection(db, "bookings"));
+      const tbody = document.querySelector("#bookingsTable tbody");
+      tbody.innerHTML = '';
+      snapshot.forEach(doc => {
+        const booking = doc.data();
+        const showtimeRef = db.collection('showtimes').doc(booking.showtimeId);
+        showtimeRef.get().then(showtimeDoc => {
+          const showtime = showtimeDoc.data();
+          const movieRef = db.collection('movies').doc(showtime.movieId);
+          movieRef.get().then(movieDoc => {
+            const movie = movieDoc.data();
+            tbody.innerHTML += `<tr><td>${booking.customerName}</td><td>${booking.email}</td><td>${booking.seat}</td><td>${movie.title} - ${new Date(showtime.datetime.toDate()).toLocaleString()}</td><td>${booking.paid ? 'Paid' : 'Pending'}</td></tr>`;
+          });
+        });
+      });
+    }
+
+  </script>
+</body>
+</html>
