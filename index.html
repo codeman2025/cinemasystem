@@ -93,6 +93,41 @@
       background-color: #f1f1f1;
     }
 
+    /* Seat map */
+    .seat-map {
+      display: grid;
+      grid-template-columns: repeat(10, 40px);
+      gap: 10px;
+      margin: 20px 0;
+      justify-content: center;
+    }
+
+    .seat {
+      width: 40px;
+      height: 40px;
+      background-color: #b0bec5;
+      border-radius: 5px;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .seat.selected {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .seat.unavailable {
+      background-color: #b0bec5;
+      cursor: not-allowed;
+    }
+
+    .seat.available:hover {
+      background-color: #007bff;
+      color: white;
+    }
+
     /* Mobile-friendly */
     @media (max-width: 768px) {
       .container {
@@ -134,8 +169,8 @@
       <label for="bookingName">Name:</label>
       <input type="text" id="bookingName" placeholder="Your Name" required /><br><br>
 
-      <label for="bookingSeat">Seat:</label>
-      <input type="text" id="bookingSeat" placeholder="Seat (e.g., A1)" required /><br><br>
+      <label for="bookingSeat">Select Seat:</label>
+      <div class="seat-map" id="seatMap"></div><br><br>
 
       <button onclick="bookTicket()">Confirm Booking (Cash)</button>
     </section>
@@ -220,7 +255,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDjVubQxKgvUxQ1cFm3TmaFec84Bbe50E8",
@@ -258,13 +293,18 @@
     async function bookTicket() {
       const showtimeId = document.getElementById("bookingShowtime").value;
       const customerName = document.getElementById("bookingName").value;
-      const seat = document.getElementById("bookingSeat").value;
+      const seat = document.querySelector('.seat.selected')?.textContent;
       const email = document.getElementById("bookingEmail").value;
 
       if (!showtimeId || !customerName || !seat || !email) {
         alert("Please fill all fields.");
         return;
       }
+
+      // Update seat to unavailable
+      await updateDoc(doc(db, "showtimes", showtimeId), {
+        seats: Array.from({ length: 100 }, () => Math.random() < 0.1 ? true : false) // Random seat availability (replace with real data)
+      });
 
       await addDoc(collection(db, "bookings"), { showtimeId, customerName, email, seat, paid: false });
       alert("Booking confirmed! Pay at counter.");
@@ -284,7 +324,7 @@
       const title = document.getElementById("movieTitle").value;
       const description = document.getElementById("movieDesc").value;
       const duration = document.getElementById("movieDuration").value;
-      
+
       if (!title || !duration) return;
 
       await addDoc(collection(db, "movies"), {
@@ -307,7 +347,7 @@
       const movieId = document.getElementById("showtimeMovie").value;
       const datetime = new Date(document.getElementById("showtimeDatetime").value);
       const hall = document.getElementById("showtimeHall").value;
-      
+
       if (!movieId || !datetime || !hall) return;
 
       await addDoc(collection(db, "showtimes"), {
@@ -325,6 +365,27 @@
         tbody.innerHTML += `<tr><td>${booking.customerName}</td><td>${booking.email}</td><td>${booking.seat}</td><td>${booking.showtimeId}</td><td>${booking.paid ? 'Paid' : 'Pending'}</td></tr>`;
       });
     }
+
+    // Initialize Seat Map
+    function generateSeatMap() {
+      const seatMap = document.getElementById("seatMap");
+      seatMap.innerHTML = '';
+      for (let i = 1; i <= 100; i++) {
+        const seat = document.createElement("div");
+        seat.classList.add("seat", "available");
+        seat.textContent = i;
+        seat.addEventListener("click", () => selectSeat(seat));
+        seatMap.appendChild(seat);
+      }
+    }
+
+    // Select Seat Logic
+    function selectSeat(seat) {
+      if (seat.classList.contains('unavailable')) return;
+      seat.classList.toggle('selected');
+    }
+
+    window.onload = generateSeatMap;
 
   </script>
 </body>
