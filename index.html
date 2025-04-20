@@ -4,96 +4,224 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cinema System</title>
+  <style>
+    /* General styles */
+    body {
+      font-family: "Arial", sans-serif;
+      background-color: #f4f7f6;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      color: #444;
+      font-size: 2em;
+      margin: 20px 0;
+    }
+
+    .container {
+      width: 80%;
+      margin: 0 auto;
+    }
+
+    .button-container {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 1em;
+      cursor: pointer;
+      margin: 10px;
+      border-radius: 4px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    /* Form and table styles */
+    section {
+      background: #fff;
+      padding: 20px;
+      margin-top: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+
+    input, select {
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #f8f9fa;
+      font-size: 1.1em;
+    }
+
+    tbody tr:hover {
+      background-color: #f1f1f1;
+    }
+
+    /* Mobile-friendly */
+    @media (max-width: 768px) {
+      .container {
+        width: 95%;
+      }
+    }
+
+    /* View switching */
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+    }
+  </style>
 </head>
 <body>
 
-  <h1>Cinema System</h1>
+  <div class="container">
+    <h1>Cinema Management System</h1>
 
-  <div>
-    <button onclick="switchView('book')">Book Ticket</button>
-    <button onclick="switchView('movies')">Admin Panel (Movies)</button>
-    <button onclick="switchView('showtimes')">Admin Panel (Showtimes)</button>
-    <button onclick="switchView('bookings')">Admin Panel (Bookings)</button>
+    <div class="button-container">
+      <button onclick="switchView('book')">Book Ticket</button>
+      <button onclick="switchView('movies')">Admin Panel (Movies)</button>
+      <button onclick="switchView('showtimes')">Admin Panel (Showtimes)</button>
+      <button onclick="switchView('bookings')">Admin Panel (Bookings)</button>
+    </div>
+
+    <!-- Booking Form -->
+    <section id="bookView" class="view">
+      <h2>Book a Ticket</h2>
+      <label for="bookingShowtime">Showtime:</label>
+      <select id="bookingShowtime"></select><br><br>
+
+      <label for="bookingEmail">Email:</label>
+      <input type="email" id="bookingEmail" placeholder="Your Email" required /><br><br>
+
+      <label for="bookingName">Name:</label>
+      <input type="text" id="bookingName" placeholder="Your Name" required /><br><br>
+
+      <label for="bookingSeat">Seat:</label>
+      <input type="text" id="bookingSeat" placeholder="Seat (e.g., A1)" required /><br><br>
+
+      <button onclick="bookTicket()">Confirm Booking (Cash)</button>
+    </section>
+
+    <!-- Admin - Movies -->
+    <section id="moviesView" class="view">
+      <h2>Manage Movies</h2>
+      <label for="movieTitle">Movie Title:</label>
+      <input id="movieTitle" placeholder="Movie Title" />
+      
+      <label for="movieDesc">Description:</label>
+      <input id="movieDesc" placeholder="Description" />
+      
+      <label for="movieDuration">Duration (min):</label>
+      <input id="movieDuration" type="number" placeholder="Duration" />
+      
+      <button onclick="addMovie()">Add Movie</button>
+
+      <div class="table-container">
+        <table id="moviesTable">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Description</th>
+              <th>Duration (min)</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Admin - Showtimes -->
+    <section id="showtimesView" class="view">
+      <h2>Manage Showtimes</h2>
+      <label for="showtimeMovie">Select Movie:</label>
+      <select id="showtimeMovie"></select><br><br>
+
+      <label for="showtimeDatetime">Datetime:</label>
+      <input id="showtimeDatetime" type="datetime-local" /><br><br>
+
+      <label for="showtimeHall">Hall Name:</label>
+      <input id="showtimeHall" placeholder="Hall Name" /><br><br>
+
+      <button onclick="addShowtime()">Add Showtime</button>
+
+      <div class="table-container">
+        <table id="showtimesTable">
+          <thead>
+            <tr>
+              <th>Movie</th>
+              <th>Datetime</th>
+              <th>Hall</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Admin - Bookings -->
+    <section id="bookingsView" class="view">
+      <h2>All Bookings</h2>
+
+      <div class="table-container">
+        <table id="bookingsTable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Seat</th>
+              <th>Showtime</th>
+              <th>Paid</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
   </div>
-
-  <!-- Booking Form -->
-  <section id="bookView" style="display:none;">
-    <h2>Book a Ticket</h2>
-    <label for="bookingShowtime">Showtime:</label>
-    <select id="bookingShowtime"></select><br><br>
-    
-    <label for="bookingEmail">Email:</label>
-    <input type="email" id="bookingEmail" placeholder="Your Email" required /><br><br>
-
-    <label for="bookingName">Name:</label>
-    <input type="text" id="bookingName" placeholder="Your Name" required /><br><br>
-
-    <label for="bookingSeat">Seat:</label>
-    <input type="text" id="bookingSeat" placeholder="Seat (e.g., A1)" required /><br><br>
-    
-    <button onclick="bookTicket()">Confirm Booking (Cash)</button>
-  </section>
-
-  <!-- Admin - Movies -->
-  <section id="moviesView" style="display:none;">
-    <h2>Manage Movies</h2>
-    <input id="movieTitle" placeholder="Movie Title" />
-    <input id="movieDesc" placeholder="Description" />
-    <input id="movieDuration" type="number" placeholder="Duration (min)" />
-    <button onclick="addMovie()">Add Movie</button>
-    <table id="moviesTable">
-      <thead>
-        <tr>
-          <th>Title</th>
-          <th>Desc</th>
-          <th>Duration</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </section>
-
-  <!-- Admin - Showtimes -->
-  <section id="showtimesView" style="display:none;">
-    <h2>Manage Showtimes</h2>
-    <select id="showtimeMovie"></select>
-    <input id="showtimeDatetime" type="datetime-local" />
-    <input id="showtimeHall" placeholder="Hall Name" />
-    <button onclick="addShowtime()">Add Showtime</button>
-    <table id="showtimesTable">
-      <thead>
-        <tr>
-          <th>Movie</th>
-          <th>Time</th>
-          <th>Hall</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </section>
-
-  <!-- Admin - Bookings -->
-  <section id="bookingsView" style="display:none;">
-    <h2>All Bookings</h2>
-    <table id="bookingsTable">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Seat</th>
-          <th>Showtime</th>
-          <th>Paid</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </section>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
-    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyDjVubQxKgvUxQ1cFm3TmaFec84Bbe50E8",
       authDomain: "cinema-5f965.firebaseapp.com",
@@ -104,17 +232,12 @@
       measurementId: "G-W31813LW3J"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Switch Views (Admin/Booking)
     function switchView(view) {
-      const sections = ['bookView', 'moviesView', 'showtimesView', 'bookingsView'];
-      sections.forEach((section) => {
-        document.getElementById(section).style.display = 'none';
-      });
-      document.getElementById(view + 'View').style.display = 'block';
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById(view + 'View').classList.add('active');
 
       if (view === 'movies') loadMovies();
       if (view === 'showtimes') loadShowtimes();
@@ -122,19 +245,16 @@
       if (view === 'book') loadShowtimesForBooking();
     }
 
-    // Customer Booking
     async function loadShowtimesForBooking() {
       const snapshot = await getDocs(collection(db, "showtimes"));
       const select = document.getElementById("bookingShowtime");
       select.innerHTML = '';
       snapshot.forEach(doc => {
         const s = doc.data();
-        const movie = db.collection('movies').doc(s.movieId);
-        select.innerHTML += `<option value="${doc.id}">${movie.title} - ${new Date(s.datetime.toDate()).toLocaleString()}</option>`;
+        select.innerHTML += `<option value="${doc.id}">${s.movieId} - ${new Date(s.datetime.toDate()).toLocaleString()}</option>`;
       });
     }
 
-    // Book a ticket
     async function bookTicket() {
       const showtimeId = document.getElementById("bookingShowtime").value;
       const customerName = document.getElementById("bookingName").value;
@@ -150,7 +270,16 @@
       alert("Booking confirmed! Pay at counter.");
     }
 
-    // Admin Functions - Movies
+    async function loadMovies() {
+      const snapshot = await getDocs(collection(db, "movies"));
+      const tbody = document.querySelector("#moviesTable tbody");
+      tbody.innerHTML = '';
+      snapshot.forEach(doc => {
+        const movie = doc.data();
+        tbody.innerHTML += `<tr><td>${movie.title}</td><td>${movie.description}</td><td>${movie.duration} min</td></tr>`;
+      });
+    }
+
     async function addMovie() {
       const title = document.getElementById("movieTitle").value;
       const description = document.getElementById("movieDesc").value;
@@ -164,7 +293,16 @@
       loadMovies();
     }
 
-    // Admin Functions - Showtimes
+    async function loadShowtimes() {
+      const snapshot = await getDocs(collection(db, "showtimes"));
+      const tbody = document.querySelector("#showtimesTable tbody");
+      tbody.innerHTML = '';
+      snapshot.forEach(doc => {
+        const showtime = doc.data();
+        tbody.innerHTML += `<tr><td>${showtime.movieId}</td><td>${new Date(showtime.datetime.toDate()).toLocaleString()}</td><td>${showtime.hall}</td></tr>`;
+      });
+    }
+
     async function addShowtime() {
       const movieId = document.getElementById("showtimeMovie").value;
       const datetime = new Date(document.getElementById("showtimeDatetime").value);
@@ -178,48 +316,13 @@
       loadShowtimes();
     }
 
-    // Admin Functions - Load Movies
-    async function loadMovies() {
-      const snapshot = await getDocs(collection(db, "movies"));
-      const tbody = document.querySelector("#moviesTable tbody");
-      tbody.innerHTML = '';
-      snapshot.forEach(doc => {
-        const movie = doc.data();
-        tbody.innerHTML += `<tr><td>${movie.title}</td><td>${movie.description}</td><td>${movie.duration} min</td></tr>`;
-      });
-    }
-
-    // Admin Functions - Load Showtimes
-    async function loadShowtimes() {
-      const snapshot = await getDocs(collection(db, "showtimes"));
-      const tbody = document.querySelector("#showtimesTable tbody");
-      tbody.innerHTML = '';
-      snapshot.forEach(doc => {
-        const showtime = doc.data();
-        const movieRef = db.collection('movies').doc(showtime.movieId);
-        movieRef.get().then(movieDoc => {
-          const movie = movieDoc.data();
-          tbody.innerHTML += `<tr><td>${movie.title}</td><td>${new Date(showtime.datetime.toDate()).toLocaleString()}</td><td>${showtime.hall}</td></tr>`;
-        });
-      });
-    }
-
-    // Admin Functions - Load Bookings
     async function loadBookings() {
       const snapshot = await getDocs(collection(db, "bookings"));
       const tbody = document.querySelector("#bookingsTable tbody");
       tbody.innerHTML = '';
       snapshot.forEach(doc => {
         const booking = doc.data();
-        const showtimeRef = db.collection('showtimes').doc(booking.showtimeId);
-        showtimeRef.get().then(showtimeDoc => {
-          const showtime = showtimeDoc.data();
-          const movieRef = db.collection('movies').doc(showtime.movieId);
-          movieRef.get().then(movieDoc => {
-            const movie = movieDoc.data();
-            tbody.innerHTML += `<tr><td>${booking.customerName}</td><td>${booking.email}</td><td>${booking.seat}</td><td>${movie.title} - ${new Date(showtime.datetime.toDate()).toLocaleString()}</td><td>${booking.paid ? 'Paid' : 'Pending'}</td></tr>`;
-          });
-        });
+        tbody.innerHTML += `<tr><td>${booking.customerName}</td><td>${booking.email}</td><td>${booking.seat}</td><td>${booking.showtimeId}</td><td>${booking.paid ? 'Paid' : 'Pending'}</td></tr>`;
       });
     }
 
